@@ -1,0 +1,1 @@
+rootProject.name = "carbon-footprint-calculator"
