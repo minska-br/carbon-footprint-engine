@@ -1,6 +1,6 @@
 package br.com.footprint.carbon
 
-import br.com.footprint.carbon.plugins.configureRouting
+import br.com.footprint.carbon.configurations.plugins.configureRouting
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.handleRequest
