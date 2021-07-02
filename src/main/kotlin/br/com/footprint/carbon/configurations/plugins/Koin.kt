@@ -1,8 +1,10 @@
 package br.com.footprint.carbon.configurations.plugins
 
+import br.com.footprint.carbon.application.services.CalculateCarbonFootprintService
 import br.com.footprint.carbon.configurations.mongoDatabase
 import br.com.footprint.carbon.domain.CalculationRepository
 import br.com.footprint.carbon.infrastructure.repositories.CalculationRepositoryImpl
+import br.com.footprint.carbon.infrastructure.repositories.gateways.LifeCycleAssessmentGateway
 import com.mongodb.ConnectionString
 import io.ktor.application.Application
 import io.ktor.application.install
@@ -24,5 +26,7 @@ private val modules = module {
             databaseName = "CarbonFootprint"
         )
     }
+    single { CalculateCarbonFootprintService(get(), get()) }
+    single { LifeCycleAssessmentGateway() }
     single<CalculationRepository> { CalculationRepositoryImpl(get()) }
 }

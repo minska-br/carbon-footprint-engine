@@ -8,6 +8,8 @@ import io.ktor.gson.gson
 fun Application.configureSerialization() {
     install(ContentNegotiation) {
         gson {
+            setPrettyPrinting()
+            disableHtmlEscaping()
         }
     }
 }
