@@ -24,4 +24,10 @@ class CalculateCarbonFootprintService(
             calculationRepository.saveCalculationRequest(it)
         }
     }
+
+    fun getAllCalculationRequest() : List<CalculationRequest> =
+        calculationRepository.findAll()
+
+    fun getCalculationRequest(calculationRequestId: UUID) : CalculationRequest =
+        calculationRepository.findCalculationRequestById(calculationRequestId)
 }
