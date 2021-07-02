@@ -25,6 +25,11 @@ dependencies {
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
     implementation("io.ktor:ktor-server-host-common:$ktorVersion")
 
+    // Client
+    implementation("io.ktor:ktor-client-core:$ktorVersion")
+    implementation("io.ktor:ktor-client-apache:$ktorVersion")
+    implementation("io.ktor:ktor-client-gson:$ktorVersion")
+
     testImplementation("io.ktor:ktor-server-tests:$ktorVersion")
 
     // Gson Serializer
