@@ -1,4 +1,4 @@
-package br.com.footprint.carbon.plugins
+package br.com.footprint.carbon.configurations.plugins
 
 import io.ktor.application.Application
 import io.ktor.application.install

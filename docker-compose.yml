@@ -1,0 +1,13 @@
+version: '3'
+services:
+  mongo:
+    image: mongo:4.4.6
+    env_file:
+      - development.env
+    ports:
+      - 27017:27017
+    volumes:
+      - ./docker/mongodb/:/docker-entrypoint-initdb.d
+      - mongodb:/data/db
+volumes:
+  mongodb:
