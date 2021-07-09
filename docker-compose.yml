@@ -9,5 +9,12 @@ services:
     volumes:
       - ./docker/mongodb/:/docker-entrypoint-initdb.d
       - mongodb:/data/db
+  localstack:
+    image: localstack/localstack
+    ports:
+      - "4566:4566"
+      - "8080:8080"
+    environment:
+      - SERVICES=sqs:4566
 volumes:
   mongodb:
