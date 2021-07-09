@@ -12,19 +12,18 @@ fun mongoConnection(
     password: String,
     databaseName: String
 ) = KMongo.createClient(
-        MongoClientSettings
-            .builder()
-            .applyConnectionString(connectionString)
-            .credential(
-                MongoCredential.createCredential(
-                    username,
-                    databaseName,
-                    password.toCharArray()
-                )
+    MongoClientSettings
+        .builder()
+        .applyConnectionString(connectionString)
+        .credential(
+            MongoCredential.createCredential(
+                username,
+                databaseName,
+                password.toCharArray()
             )
-    .build()
-    )
-
+        )
+        .build()
+)
 
 fun mongoDatabase(
     connectionString: ConnectionString,
@@ -33,7 +32,7 @@ fun mongoDatabase(
     databaseName: String
 ): MongoDatabase = mongoConnection(
     connectionString = connectionString,
-            username = username,
-            password = password,
-            databaseName = databaseName
-    ).getDatabase(databaseName)
+    username = username,
+    password = password,
+    databaseName = databaseName
+).getDatabase(databaseName)
