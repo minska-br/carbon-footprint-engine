@@ -23,6 +23,15 @@ fun Application.configureRouting() {
                 call.respond(HttpStatusCode.Accepted, calculationRequest)
             }
 
+            get("/{id}") {
+                call.parameters["id"].takeUnless { it.isNullOrEmpty() }?.let { id ->
+                    val calculation = calculateCarbonFootprintService.getCalculation(
+                        id = UUID.fromString(id).toString()
+                    )
+                    call.respond(HttpStatusCode.OK, calculation)
+                }
+            }
+
             get("/requests") {
                 call.respond(
                     HttpStatusCode.OK,
@@ -33,7 +42,7 @@ fun Application.configureRouting() {
             get("/requests/{id}") {
                 call.parameters["id"].takeUnless { it.isNullOrEmpty() }?.let { id ->
                     val calculationRequest = calculateCarbonFootprintService.getCalculationRequest(
-                        calculationRequestId = UUID.fromString(id)
+                        calculationRequestId = UUID.fromString(id).toString()
                     )
                     call.respond(HttpStatusCode.OK, calculationRequest)
                 }

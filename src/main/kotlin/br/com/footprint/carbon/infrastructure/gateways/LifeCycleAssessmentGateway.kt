@@ -1,32 +1,29 @@
-package br.com.footprint.carbon.infrastructure.repositories.gateways
+package br.com.footprint.carbon.infrastructure.gateways
 
 import br.com.footprint.carbon.application.services.requests.Ingredient
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
 import io.ktor.client.features.json.GsonSerializer
 import io.ktor.client.features.json.JsonFeature
+import io.ktor.client.features.logging.DEFAULT
+import io.ktor.client.features.logging.LogLevel
+import io.ktor.client.features.logging.Logger
+import io.ktor.client.features.logging.Logging
 import io.ktor.client.request.post
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import java.math.BigDecimal
+import kotlinx.coroutines.runBlocking
+import java.util.UUID
 
-
-data class ProductFootprint(
-    val productName: String,
-)
-
-data class CarbonEmission (
-    val value: BigDecimal,
-    val unit: EmissionUnit
-)
-
-enum class EmissionUnit {
-    KG_CO2_EQ
-}
+data class RequestId(val value: UUID)
 
 class LifeCycleAssessmentGateway {
     companion object {
         val client = HttpClient(Apache) {
+            install(Logging) {
+                logger = Logger.DEFAULT
+                level = LogLevel.HEADERS
+            }
             install(JsonFeature) {
                 serializer = GsonSerializer() {
                     setPrettyPrinting()
@@ -36,10 +33,10 @@ class LifeCycleAssessmentGateway {
         }
     }
 
-    suspend fun calculateForFoods(foods: List<Ingredient>) : List<ProductFootprint> {
-        return client.post("http://localhost:8000/calculate") {
+    fun calculateForFoods(foods: List<Ingredient>) = runBlocking {
+        client.post<RequestId>("http://localhost:8000/calculate") {
             contentType(ContentType.Application.Json)
             body = foods
-        }
+        }.also { client.close() }
     }
 }
