@@ -4,6 +4,7 @@ import br.com.footprint.carbon.configurations.plugins.configureHTTP
 import br.com.footprint.carbon.configurations.plugins.configureKoin
 import br.com.footprint.carbon.configurations.plugins.configureRouting
 import br.com.footprint.carbon.configurations.plugins.configureSerialization
+import br.com.footprint.carbon.configurations.plugins.configureSqs
 import io.ktor.application.Application
 import io.ktor.server.netty.EngineMain
 
@@ -17,4 +18,5 @@ fun Application.module(testing: Boolean = false) {
     configureHTTP()
     configureSerialization()
     configureKoin()
+    configureSqs()
 }

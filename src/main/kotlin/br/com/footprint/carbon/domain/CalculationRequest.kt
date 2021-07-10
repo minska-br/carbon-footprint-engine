@@ -1,14 +1,13 @@
 package br.com.footprint.carbon.domain
 
-import java.util.UUID
-
-class CalculationRequest(
-    val id: String,
+data class CalculationRequest(
+    val requestId: String,
+    val calculationId: String,
+    val name: String,
     val href: String,
     val method: HttpMethod,
     val startTime: String,
     val status: CalculationRequestStatus = CalculationRequestStatus.CALCULATING,
-    val calculationId: UUID? = null,
     val endTime: String? = null
 )
 

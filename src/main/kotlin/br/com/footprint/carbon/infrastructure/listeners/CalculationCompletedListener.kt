@@ -1,0 +1,135 @@
+package br.com.footprint.carbon.infrastructure.listeners
+import br.com.footprint.carbon.domain.CalculationRequestRepository
+import br.com.footprint.carbon.domain.CalculationRequestStatus
+import br.com.footprint.carbon.domain.ProcessesCalculation
+import br.com.footprint.carbon.domain.ProcessesCalculationRepository
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
+import org.slf4j.LoggerFactory
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.sqs.SqsAsyncClient
+import software.amazon.awssdk.services.sqs.model.Message
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
+import java.net.URI
+import kotlin.coroutines.CoroutineContext
+
+private const val SQS_URL = "http://localhost:4566/queue/calculation-completed"
+
+class CalculationCompletedListener(
+    private val processesCalculationRepository: ProcessesCalculationRepository,
+    private val calculationRequestRepository: CalculationRequestRepository
+) : CoroutineScope {
+
+    private var logger = LoggerFactory.getLogger(CalculationCompletedListener::class.java)
+
+    companion object {
+        private const val N_WORKERS = 4
+        private const val VISIBILITY_TIMEOUT = 10
+        private const val WAIT_TIME_SECONDS = 20
+        private const val MAX_NUMBER_OF_MESSAGES = 10
+        private val uri = URI("http://localhost:4566/")
+        private val sqs = SqsAsyncClient.builder()
+            .region(Region.US_EAST_1)
+            .endpointOverride(uri)
+            .build()
+    }
+
+    private val supervisorJob = SupervisorJob()
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.IO + supervisorJob
+
+    fun start() = launch {
+        val messageChannel = Channel<Message>()
+        repeat(N_WORKERS) { launchWorker(messageChannel) }
+        launchMsgReceiver(messageChannel)
+    }
+
+    private fun CoroutineScope.launchMsgReceiver(channel: SendChannel<Message>) = launch {
+        repeatUntilCancelled {
+            val receiveRequest = ReceiveMessageRequest.builder()
+                .queueUrl(SQS_URL)
+                .waitTimeSeconds(WAIT_TIME_SECONDS)
+                .maxNumberOfMessages(MAX_NUMBER_OF_MESSAGES)
+                .build()
+
+            val messages = sqs.receiveMessage(receiveRequest).await().messages()
+            logger.info("${Thread.currentThread().name} Retrieved ${messages.size} messages")
+
+            messages.forEach {
+                channel.send(it)
+            }
+        }
+    }
+
+    private fun CoroutineScope.launchWorker(channel: ReceiveChannel<Message>) = launch {
+        repeatUntilCancelled {
+            for (msg in channel) {
+                try {
+                    processMsg(msg)
+                    deleteMessage(msg)
+                } catch (ex: Exception) {
+                    logger.error("${Thread.currentThread().name} exception trying to process message ${msg.body()}", ex)
+                    changeVisibility(msg)
+                }
+            }
+        }
+    }
+
+    private fun processMsg(message: Message) =
+        jacksonObjectMapper().readValue(message.body(), ProcessesCalculation::class.java).also {
+            logger.info("Saving calculation completed event")
+            processesCalculationRepository.save(it)
+
+            logger.info("Update Calculation Request status")
+            calculationRequestRepository.updateStatusByCalculationId(
+                calculationId = it.calculationId,
+                status = CalculationRequestStatus.CALCULATED
+            )
+
+            logger.info("Saved event !")
+        }
+
+    private suspend fun deleteMessage(message: Message) {
+        sqs.deleteMessage { req ->
+            req.queueUrl(SQS_URL)
+            req.receiptHandle(message.receiptHandle())
+        }.await()
+
+        logger.info("${Thread.currentThread().name} Message deleted: ${message.body()}")
+    }
+
+    private suspend fun changeVisibility(message: Message) {
+        sqs.changeMessageVisibility { req ->
+            req.queueUrl(SQS_URL)
+            req.receiptHandle(message.receiptHandle())
+            req.visibilityTimeout(VISIBILITY_TIMEOUT)
+        }.await()
+
+        logger.info("${Thread.currentThread().name} Changed visibility of message: ${message.body()}")
+    }
+
+    private suspend fun CoroutineScope.repeatUntilCancelled(block: suspend () -> Unit) {
+        while (isActive) {
+            try {
+                block()
+                yield()
+            } catch (ex: CancellationException) {
+                logger.error("coroutine on ${Thread.currentThread().name} cancelled", ex)
+            } catch (ex: Exception) {
+                logger.error("${Thread.currentThread().name} failed with {$ex}. Retrying...", ex)
+            }
+        }
+
+        logger.info("coroutine on ${Thread.currentThread().name} exiting")
+    }
+}
