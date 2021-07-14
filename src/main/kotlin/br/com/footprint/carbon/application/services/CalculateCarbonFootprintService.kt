@@ -46,6 +46,7 @@ class CalculateCarbonFootprintService(
                 id = id,
                 name = calculationRequest.name,
                 processes = calculationProcesses.processCalculations,
+                calculatedPercentage = calculationProcesses.calculatedPercentage
             ).also {
                 calculationRepository.save(it)
             }
