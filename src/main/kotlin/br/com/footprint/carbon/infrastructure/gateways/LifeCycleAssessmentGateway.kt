@@ -37,6 +37,6 @@ class LifeCycleAssessmentGateway {
         client.post<RequestId>("http://localhost:8000/calculate") {
             contentType(ContentType.Application.Json)
             body = foods
-        }.also { client.close() }
+        }
     }
 }
