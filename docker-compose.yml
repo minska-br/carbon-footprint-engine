@@ -3,7 +3,7 @@ services:
   mongo:
     image: mongo:4.4.6
     env_file:
-      - development.env
+      - .development.env
     ports:
       - 27017:27017
     volumes:

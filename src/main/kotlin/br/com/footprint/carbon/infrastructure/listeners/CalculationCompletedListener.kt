@@ -23,26 +23,26 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import java.net.URI
 import kotlin.coroutines.CoroutineContext
 
-private const val SQS_URL = "http://localhost:4566/queue/calculation-completed"
-
 class CalculationCompletedListener(
+    private val sqsUri: String,
+    private val sqsUrl: String,
     private val processesCalculationRepository: ProcessesCalculationRepository,
     private val calculationRequestRepository: CalculationRequestRepository
 ) : CoroutineScope {
-
-    private var logger = LoggerFactory.getLogger(CalculationCompletedListener::class.java)
 
     companion object {
         private const val N_WORKERS = 4
         private const val VISIBILITY_TIMEOUT = 10
         private const val WAIT_TIME_SECONDS = 20
         private const val MAX_NUMBER_OF_MESSAGES = 10
-        private val uri = URI("http://localhost:4566/")
-        private val sqs = SqsAsyncClient.builder()
-            .region(Region.US_EAST_1)
-            .endpointOverride(uri)
-            .build()
     }
+
+    private var logger = LoggerFactory.getLogger(CalculationCompletedListener::class.java)
+
+    private val sqs = SqsAsyncClient.builder()
+        .region(Region.US_EAST_1)
+        .endpointOverride(URI(sqsUri))
+        .build()
 
     private val supervisorJob = SupervisorJob()
     override val coroutineContext: CoroutineContext
@@ -57,7 +57,7 @@ class CalculationCompletedListener(
     private fun CoroutineScope.launchMsgReceiver(channel: SendChannel<Message>) = launch {
         repeatUntilCancelled {
             val receiveRequest = ReceiveMessageRequest.builder()
-                .queueUrl(SQS_URL)
+                .queueUrl(sqsUrl)
                 .waitTimeSeconds(WAIT_TIME_SECONDS)
                 .maxNumberOfMessages(MAX_NUMBER_OF_MESSAGES)
                 .build()
@@ -101,7 +101,7 @@ class CalculationCompletedListener(
 
     private suspend fun deleteMessage(message: Message) {
         sqs.deleteMessage { req ->
-            req.queueUrl(SQS_URL)
+            req.queueUrl(sqsUrl)
             req.receiptHandle(message.receiptHandle())
         }.await()
 
@@ -110,7 +110,7 @@ class CalculationCompletedListener(
 
     private suspend fun changeVisibility(message: Message) {
         sqs.changeMessageVisibility { req ->
-            req.queueUrl(SQS_URL)
+            req.queueUrl(sqsUrl)
             req.receiptHandle(message.receiptHandle())
             req.visibilityTimeout(VISIBILITY_TIMEOUT)
         }.await()
