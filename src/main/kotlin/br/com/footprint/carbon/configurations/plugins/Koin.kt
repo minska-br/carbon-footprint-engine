@@ -20,21 +20,22 @@ import org.koin.ktor.ext.Koin
 fun Application.configureKoin() {
     install(Koin) {
         modules(
-            modules(mapOf(
-                "MONGODB_CONNECTION_URL" to getKey("ktor.application.mongodb.connectionUrl"),
-                "MONGODB_USER" to getKey("ktor.application.mongodb.user"),
-                "MONGODB_PASSWORD" to getKey("ktor.application.mongodb.password"),
-                "MONGODB_DATABASE" to getKey("ktor.application.mongodb.database"),
-                "LCA_API_URL" to getKey("ktor.application.api.lcaUrl"),
-                "SQS_URI" to getKey("ktor.application.sqs.uri"),
-                "SQS_URL" to getKey("ktor.application.sqs.url"),
-            ))
+            modules(
+                mapOf(
+                    "MONGODB_CONNECTION_URL" to getKey("ktor.application.mongodb.connectionUrl"),
+                    "MONGODB_USER" to getKey("ktor.application.mongodb.user"),
+                    "MONGODB_PASSWORD" to getKey("ktor.application.mongodb.password"),
+                    "MONGODB_DATABASE" to getKey("ktor.application.mongodb.database"),
+                    "LCA_API_URL" to getKey("ktor.application.api.lcaUrl"),
+                    "SQS_URI" to getKey("ktor.application.sqs.uri"),
+                    "SQS_URL" to getKey("ktor.application.sqs.url"),
+                )
+            )
         )
     }
-
 }
 
-fun modules(keys: Map<String, String>) : Module =
+fun modules(keys: Map<String, String>): Module =
     module {
         single {
             mongoDatabase(
@@ -55,8 +56,9 @@ fun modules(keys: Map<String, String>) : Module =
         }
     }
 
-fun Application.getKey(key: String) : String {
-    return environment.config.propertyOrNull(key)?.getString()
-        ?: throw RuntimeException("Key '$key' not found")
-}
+data class KeyNotFound(val msg: String) : RuntimeException(msg)
 
+fun Application.getKey(key: String): String {
+    return environment.config.propertyOrNull(key)?.getString()
+        ?: throw KeyNotFound("Key '$key' not found")
+}

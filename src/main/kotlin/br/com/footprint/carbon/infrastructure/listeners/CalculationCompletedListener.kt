@@ -24,8 +24,8 @@ import java.net.URI
 import kotlin.coroutines.CoroutineContext
 
 class CalculationCompletedListener(
-    private val SQS_URI: String,
-    private val SQS_URL: String,
+    private val sqsUri: String,
+    private val sqsUrl: String,
     private val processesCalculationRepository: ProcessesCalculationRepository,
     private val calculationRequestRepository: CalculationRequestRepository
 ) : CoroutineScope {
@@ -41,7 +41,7 @@ class CalculationCompletedListener(
 
     private val sqs = SqsAsyncClient.builder()
         .region(Region.US_EAST_1)
-        .endpointOverride(URI(SQS_URI))
+        .endpointOverride(URI(sqsUri))
         .build()
 
     private val supervisorJob = SupervisorJob()
@@ -57,7 +57,7 @@ class CalculationCompletedListener(
     private fun CoroutineScope.launchMsgReceiver(channel: SendChannel<Message>) = launch {
         repeatUntilCancelled {
             val receiveRequest = ReceiveMessageRequest.builder()
-                .queueUrl(SQS_URL)
+                .queueUrl(sqsUrl)
                 .waitTimeSeconds(WAIT_TIME_SECONDS)
                 .maxNumberOfMessages(MAX_NUMBER_OF_MESSAGES)
                 .build()
@@ -101,7 +101,7 @@ class CalculationCompletedListener(
 
     private suspend fun deleteMessage(message: Message) {
         sqs.deleteMessage { req ->
-            req.queueUrl(SQS_URL)
+            req.queueUrl(sqsUrl)
             req.receiptHandle(message.receiptHandle())
         }.await()
 
@@ -110,7 +110,7 @@ class CalculationCompletedListener(
 
     private suspend fun changeVisibility(message: Message) {
         sqs.changeMessageVisibility { req ->
-            req.queueUrl(SQS_URL)
+            req.queueUrl(sqsUrl)
             req.receiptHandle(message.receiptHandle())
             req.visibilityTimeout(VISIBILITY_TIMEOUT)
         }.await()

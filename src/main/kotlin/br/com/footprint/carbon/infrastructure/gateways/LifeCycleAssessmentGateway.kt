@@ -17,7 +17,7 @@ import java.util.UUID
 
 data class RequestId(val value: UUID)
 
-class LifeCycleAssessmentGateway(val LCA_API_URL: String) {
+class LifeCycleAssessmentGateway(val lcaApiUrl: String) {
     companion object {
         val client = HttpClient(Apache) {
             install(Logging) {
@@ -34,7 +34,7 @@ class LifeCycleAssessmentGateway(val LCA_API_URL: String) {
     }
 
     fun calculateForFoods(foods: List<Ingredient>) = runBlocking {
-        client.post<RequestId>("${LCA_API_URL}/calculate") {
+        client.post<RequestId>("$lcaApiUrl/calculate") {
             contentType(ContentType.Application.Json)
             body = foods
         }
