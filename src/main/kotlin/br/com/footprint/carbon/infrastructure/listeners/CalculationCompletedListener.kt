@@ -40,7 +40,7 @@ class CalculationCompletedListener(
     private var logger = LoggerFactory.getLogger(CalculationCompletedListener::class.java)
 
     private val sqs = SqsAsyncClient.builder()
-        .region(Region.US_EAST_1)
+        .region(Region.US_EAST_2)
         .endpointOverride(URI(sqsUri))
         .build()
 

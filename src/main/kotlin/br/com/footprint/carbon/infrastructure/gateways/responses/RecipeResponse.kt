@@ -1,6 +1,8 @@
-package br.com.footprint.carbon.application.services.requests
+package br.com.footprint.carbon.infrastructure.gateways.responses
 
-data class RecipeRequest(
+import java.math.BigDecimal
+
+data class RecipeResponse(
     val name: String,
     val ingredients: List<Ingredient>,
     val directions: List<Direction>
@@ -8,7 +10,7 @@ data class RecipeRequest(
 
 data class Ingredient(
     val name: String,
-    val amount: Double,
+    val amount: BigDecimal,
 )
 
 data class Direction(
