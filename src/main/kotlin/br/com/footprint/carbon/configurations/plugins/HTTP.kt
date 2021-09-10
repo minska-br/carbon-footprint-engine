@@ -8,10 +8,9 @@ import io.ktor.http.HttpMethod
 
 fun Application.configureHTTP() {
     install(CORS) {
+        method(HttpMethod.Post)
+        method(HttpMethod.Get)
         method(HttpMethod.Options)
-        method(HttpMethod.Put)
-        method(HttpMethod.Delete)
-        method(HttpMethod.Patch)
         header(HttpHeaders.Authorization)
         header("MyCustomHeader")
         allowCredentials = true
