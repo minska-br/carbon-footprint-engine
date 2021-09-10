@@ -98,7 +98,6 @@ fabric.properties
 logs/*.log
 
 # Package Files #
-*.jar
 *.war
 *.nar
 *.ear

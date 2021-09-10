@@ -6,6 +6,7 @@ import br.com.footprint.carbon.domain.CalculationRepository
 import br.com.footprint.carbon.domain.CalculationRequestRepository
 import br.com.footprint.carbon.domain.ProcessesCalculationRepository
 import br.com.footprint.carbon.infrastructure.gateways.LifeCycleAssessmentGateway
+import br.com.footprint.carbon.infrastructure.gateways.RecipeGateway
 import br.com.footprint.carbon.infrastructure.listeners.CalculationCompletedListener
 import br.com.footprint.carbon.infrastructure.repositories.CalculationRepositoryImpl
 import br.com.footprint.carbon.infrastructure.repositories.CalculationRequestRepositoryImpl
@@ -23,10 +24,9 @@ fun Application.configureKoin() {
             modules(
                 mapOf(
                     "MONGODB_CONNECTION_URL" to getKey("ktor.application.mongodb.connectionUrl"),
-                    "MONGODB_USER" to getKey("ktor.application.mongodb.user"),
-                    "MONGODB_PASSWORD" to getKey("ktor.application.mongodb.password"),
                     "MONGODB_DATABASE" to getKey("ktor.application.mongodb.database"),
                     "LCA_API_URL" to getKey("ktor.application.api.lcaUrl"),
+                    "RECIPE_URL" to getKey("ktor.application.api.recipeUrl"),
                     "SQS_URI" to getKey("ktor.application.sqs.uri"),
                     "SQS_URL" to getKey("ktor.application.sqs.url"),
                 )
@@ -40,14 +40,13 @@ fun modules(keys: Map<String, String>): Module =
         single {
             mongoDatabase(
                 connectionString = ConnectionString(keys.getValue("MONGODB_CONNECTION_URL")),
-                username = keys.getValue("MONGODB_USER"),
-                password = keys.getValue("MONGODB_PASSWORD"),
                 databaseName = keys.getValue("MONGODB_DATABASE")
             )
         }
 
-        single { CalculateCarbonFootprintService(get(), get(), get(), get()) }
+        single { CalculateCarbonFootprintService(get(), get(), get(), get(), get()) }
         single { LifeCycleAssessmentGateway(keys.getValue("LCA_API_URL")) }
+        single { RecipeGateway(keys.getValue("RECIPE_URL")) }
         single<CalculationRequestRepository> { CalculationRequestRepositoryImpl(get()) }
         single<ProcessesCalculationRepository> { ProcessesCalculationRepositoryImpl(get()) }
         single<CalculationRepository> { CalculationRepositoryImpl(get()) }

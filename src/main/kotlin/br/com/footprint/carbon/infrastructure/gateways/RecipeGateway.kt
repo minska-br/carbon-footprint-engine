@@ -1,29 +1,29 @@
 package br.com.footprint.carbon.infrastructure.gateways
 
-import br.com.footprint.carbon.infrastructure.gateways.responses.Ingredient
+import br.com.footprint.carbon.infrastructure.gateways.responses.RecipeResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
+import io.ktor.client.features.HttpTimeout
 import io.ktor.client.features.json.GsonSerializer
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.features.logging.DEFAULT
 import io.ktor.client.features.logging.LogLevel
 import io.ktor.client.features.logging.Logger
 import io.ktor.client.features.logging.Logging
+import io.ktor.client.features.timeout
 import io.ktor.client.request.post
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
-import java.util.UUID
 
-data class RequestId(val value: UUID)
+const val REQUEST_TIMEOUT_MILLIS = 200000L
 
-class LifeCycleAssessmentGateway(val lcaApiUrl: String) {
+class RecipeGateway(private val recipeUrl: String) {
     companion object {
         val client = HttpClient(CIO) {
             install(Logging) {
                 logger = Logger.DEFAULT
                 level = LogLevel.HEADERS
             }
+            install(HttpTimeout)
             install(JsonFeature) {
                 serializer = GsonSerializer() {
                     setPrettyPrinting()
@@ -33,10 +33,11 @@ class LifeCycleAssessmentGateway(val lcaApiUrl: String) {
         }
     }
 
-    fun calculateForFoods(foods: List<Ingredient>) = runBlocking {
-        client.post<RequestId>("$lcaApiUrl/calculate") {
-            contentType(ContentType.Application.Json)
-            body = foods
+    fun getRecipeById(id: String) = runBlocking {
+        client.post<RecipeResponse>("$recipeUrl/recipes/AllRecipes/$id") {
+            timeout {
+                requestTimeoutMillis = REQUEST_TIMEOUT_MILLIS
+            }
         }
     }
 }
