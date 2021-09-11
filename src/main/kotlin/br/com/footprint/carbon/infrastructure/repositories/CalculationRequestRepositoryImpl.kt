@@ -3,12 +3,12 @@ package br.com.footprint.carbon.infrastructure.repositories
 import br.com.footprint.carbon.domain.CalculationRequest
 import br.com.footprint.carbon.domain.CalculationRequestRepository
 import br.com.footprint.carbon.domain.CalculationRequestStatus
+import com.mongodb.BasicDBObject
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
 import io.ktor.features.NotFoundException
 import org.litote.kmongo.eq
 import org.litote.kmongo.findOne
-import org.litote.kmongo.inc
 import org.litote.kmongo.setValue
 
 private const val COLLECTION_NAME = "CalculationRequest"
@@ -26,7 +26,7 @@ class CalculationRequestRepositoryImpl(
     }
 
     override fun findAll(): List<CalculationRequest> =
-        collection.find().toList()
+        collection.find().sort(BasicDBObject("startTime", -1)).toList()
 
     override fun findById(id: String): CalculationRequest =
         collection.findOne(CalculationRequest::requestId eq id)
