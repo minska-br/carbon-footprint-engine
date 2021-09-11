@@ -7,8 +7,8 @@ data class CalculationRequest(
     val href: String,
     val method: HttpMethod,
     val startTime: String,
-    val status: CalculationRequestStatus = CalculationRequestStatus.CALCULATING,
-    val endTime: String? = null
+    val endTime: String? = null,
+    val status: CalculationRequestStatus = CalculationRequestStatus.CALCULATING
 )
 
 enum class HttpMethod {
