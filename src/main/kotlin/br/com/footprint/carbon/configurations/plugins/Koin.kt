@@ -7,7 +7,8 @@ import br.com.footprint.carbon.domain.CalculationRequestRepository
 import br.com.footprint.carbon.domain.ProcessesCalculationRepository
 import br.com.footprint.carbon.infrastructure.gateways.LifeCycleAssessmentGateway
 import br.com.footprint.carbon.infrastructure.gateways.RecipeGateway
-import br.com.footprint.carbon.infrastructure.listeners.CalculationCompletedListener
+import br.com.footprint.carbon.infrastructure.listeners.CompletedCalculationListener
+import br.com.footprint.carbon.infrastructure.listeners.FailedCalculationListener
 import br.com.footprint.carbon.infrastructure.repositories.CalculationRepositoryImpl
 import br.com.footprint.carbon.infrastructure.repositories.CalculationRequestRepositoryImpl
 import br.com.footprint.carbon.infrastructure.repositories.ProcessesCalculationRepositoryImpl
@@ -29,6 +30,7 @@ fun Application.configureKoin() {
                     "RECIPE_URL" to getKey("ktor.application.api.recipeUrl"),
                     "SQS_URI" to getKey("ktor.application.sqs.uri"),
                     "SQS_URL" to getKey("ktor.application.sqs.url"),
+                    "DLQ_SQS_URL" to getKey("ktor.application.sqs.dlqUrl")
                 )
             )
         )
@@ -51,7 +53,10 @@ fun modules(keys: Map<String, String>): Module =
         single<ProcessesCalculationRepository> { ProcessesCalculationRepositoryImpl(get()) }
         single<CalculationRepository> { CalculationRepositoryImpl(get()) }
         single {
-            CalculationCompletedListener(keys.getValue("SQS_URI"), keys.getValue("SQS_URL"), get(), get())
+            CompletedCalculationListener(keys.getValue("SQS_URI"), keys.getValue("SQS_URL"), get(), get())
+        }
+        single {
+            FailedCalculationListener(keys.getValue("SQS_URI"), keys.getValue("DLQ_SQS_URL"), get())
         }
     }
 

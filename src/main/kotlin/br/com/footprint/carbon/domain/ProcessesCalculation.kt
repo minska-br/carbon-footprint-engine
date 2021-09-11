@@ -34,3 +34,10 @@ data class Processes(
     val processNameFound: String?,
     val calculated: Boolean
 )
+
+data class Miscalculation(
+    @JsonProperty("calculation_id")
+    val calculationId: String,
+    @JsonProperty("error_message")
+    val errorMessage: String,
+)

@@ -1,8 +1,7 @@
 package br.com.footprint.carbon.infrastructure.listeners
 import br.com.footprint.carbon.domain.CalculationRequestRepository
 import br.com.footprint.carbon.domain.CalculationRequestStatus
-import br.com.footprint.carbon.domain.ProcessesCalculation
-import br.com.footprint.carbon.domain.ProcessesCalculationRepository
+import br.com.footprint.carbon.domain.Miscalculation
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -23,21 +22,20 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import java.net.URI
 import kotlin.coroutines.CoroutineContext
 
-class CalculationCompletedListener(
-    private val sqsUri: String,
+class FailedCalculationListener(
+    sqsUri: String,
     private val sqsUrl: String,
-    private val processesCalculationRepository: ProcessesCalculationRepository,
     private val calculationRequestRepository: CalculationRequestRepository
 ) : CoroutineScope {
 
     companion object {
-        private const val N_WORKERS = 4
+        private const val N_WORKERS = 2
         private const val VISIBILITY_TIMEOUT = 10
         private const val WAIT_TIME_SECONDS = 20
         private const val MAX_NUMBER_OF_MESSAGES = 10
     }
 
-    private var logger = LoggerFactory.getLogger(CalculationCompletedListener::class.java)
+    private var logger = LoggerFactory.getLogger(FailedCalculationListener::class.java)
 
     private val sqs = SqsAsyncClient.builder()
         .region(Region.US_EAST_2)
@@ -86,16 +84,12 @@ class CalculationCompletedListener(
     }
 
     private fun processMsg(message: Message) =
-        jacksonObjectMapper().readValue(message.body(), ProcessesCalculation::class.java).also {
-            logger.info("Saving calculation completed event")
-            processesCalculationRepository.save(it)
-
+        jacksonObjectMapper().readValue(message.body(), Miscalculation::class.java).also {
             logger.info("Update Calculation Request status")
             calculationRequestRepository.updateStatusByCalculationId(
                 calculationId = it.calculationId,
-                status = CalculationRequestStatus.CALCULATED
+                status = CalculationRequestStatus.ERROR
             )
-
             logger.info("Saved event !")
         }
 
