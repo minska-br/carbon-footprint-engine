@@ -11,6 +11,7 @@ data class RecipeResponse(
 data class Ingredient(
     val name: String,
     val amount: BigDecimal,
+    val unit: String,
 )
 
 data class Direction(
