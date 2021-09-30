@@ -11,9 +11,8 @@ fun Application.configureHTTP() {
         method(HttpMethod.Post)
         method(HttpMethod.Get)
         method(HttpMethod.Options)
-        header(HttpHeaders.Authorization)
-        header("MyCustomHeader")
-        allowCredentials = true
-        anyHost() // TODO: Don't do this in production if possible. Try to limit it.
+        header(HttpHeaders.AccessControlAllowOrigin)
+        header(HttpHeaders.ContentType)
+        anyHost()
     }
 }
