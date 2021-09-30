@@ -37,7 +37,7 @@ class CalculateCarbonFootprintService(
             recipeGateway.getRecipeById(recipeId).ingredients
         } ?: run {
             listOf(
-                Ingredient(name = product.foodName, amount = product.amount)
+                Ingredient(name = product.foodName, amount = product.amount, unit = "kilograms")
             )
         }
 

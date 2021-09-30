@@ -19,7 +19,7 @@ data class Calculation(
     val processes: List<Processes>,
     val calculatedPercentage: BigDecimal
 ) {
-    var totalCarbonFootprint: BigDecimal = processes.sumOf { it.value }
+    var totalCarbonFootprint: BigDecimal = processes.sumOf { it.value ?: BigDecimal.ZERO }
 }
 
 enum class UnitType {
@@ -28,8 +28,9 @@ enum class UnitType {
 
 data class Processes(
     val name: String,
-    val value: BigDecimal,
+    val value: BigDecimal?,
     val unit: String = UnitType.KG_CO2_EQ.toString(),
+    val amount: BigDecimal,
     @JsonProperty("process_name_found")
     val processNameFound: String?,
     val calculated: Boolean
