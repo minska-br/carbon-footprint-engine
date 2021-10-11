@@ -5,5 +5,5 @@ interface CalculationRequestRepository {
     fun findAll(): List<CalculationRequest>
     fun findById(id: String): CalculationRequest
     fun findByCalculationId(id: String): CalculationRequest
-    fun updateStatusByCalculationId(calculationId: String, status: CalculationRequestStatus)
+    fun updateStatusByCalculationId(calculationId: String, status: CalculationRequestStatus, endTime: String)
 }

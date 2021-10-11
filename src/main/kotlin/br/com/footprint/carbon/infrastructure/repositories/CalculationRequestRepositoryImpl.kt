@@ -36,10 +36,17 @@ class CalculationRequestRepositoryImpl(
         collection.findOne(CalculationRequest::calculationId eq id)
             ?: throw NotFoundException("No calculation request found for id: $id")
 
-    override fun updateStatusByCalculationId(calculationId: String, status: CalculationRequestStatus) {
-        collection.updateOne(
+    override fun updateStatusByCalculationId(
+        calculationId: String,
+        status: CalculationRequestStatus,
+        endTime: String
+    ) {
+        collection.updateMany(
             CalculationRequest::calculationId eq calculationId,
-            setValue(CalculationRequest::status, status)
+            listOf(
+                setValue(CalculationRequest::status, status),
+                setValue(CalculationRequest::endTime, endTime)
+            ),
         )
     }
 }

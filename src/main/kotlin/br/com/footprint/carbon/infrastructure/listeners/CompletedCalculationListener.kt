@@ -21,6 +21,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient
 import software.amazon.awssdk.services.sqs.model.Message
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import java.net.URI
+import java.time.LocalDateTime
 import kotlin.coroutines.CoroutineContext
 
 class CompletedCalculationListener(
@@ -93,7 +94,8 @@ class CompletedCalculationListener(
             logger.info("Update Calculation Request status")
             calculationRequestRepository.updateStatusByCalculationId(
                 calculationId = it.calculationId,
-                status = CalculationRequestStatus.CALCULATED
+                status = CalculationRequestStatus.CALCULATED,
+                endTime = LocalDateTime.now().toString()
             )
 
             logger.info("Saved event !")
