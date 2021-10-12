@@ -1,4 +1,5 @@
 package br.com.footprint.carbon.infrastructure.listeners
+
 import br.com.footprint.carbon.domain.CalculationRequestRepository
 import br.com.footprint.carbon.domain.CalculationRequestStatus
 import br.com.footprint.carbon.domain.ProcessesCalculation

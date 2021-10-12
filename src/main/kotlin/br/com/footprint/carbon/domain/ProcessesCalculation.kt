@@ -2,6 +2,7 @@ package br.com.footprint.carbon.domain
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.math.BigDecimal
+import java.math.RoundingMode
 
 data class ProcessesCalculation(
     @JsonProperty("calculation_id")
@@ -19,8 +20,44 @@ data class Calculation(
     val processes: List<Processes>,
     val calculatedPercentage: BigDecimal
 ) {
+    companion object {
+        private val MEDIUM_CAR = BigDecimal(4.3936731)
+        private val MEDIUM_BUS = BigDecimal(0.9768487)
+        private val ATLANTIC_FOREST_TREE = BigDecimal(130)
+        private val AMAZON_RAINFOREST_TREE = BigDecimal(222)
+
+        private const val ROUND_SCALE = 3
+    }
+
     var totalCarbonFootprint: BigDecimal = processes.sumOf { it.value ?: BigDecimal.ZERO }
+    var conversions: List<Conversion> = generateConversions(totalCarbonFootprint)
+
+    private fun generateConversions(totalCarbonFootprint: BigDecimal): List<Conversion> =
+        listOf(
+            Conversion(
+                name = "Medium car",
+                value = (totalCarbonFootprint * MEDIUM_CAR).setScale(ROUND_SCALE, RoundingMode.HALF_UP)
+            ),
+            Conversion(
+                name = "Medium bus",
+                value = (totalCarbonFootprint * MEDIUM_BUS).setScale(ROUND_SCALE, RoundingMode.HALF_UP)
+            ),
+            Conversion(
+                name = "Atlantic Forest tree",
+                value = (ATLANTIC_FOREST_TREE / totalCarbonFootprint).setScale(ROUND_SCALE, RoundingMode.HALF_UP)
+            ),
+            Conversion(
+                name = "Amazon Rainforest tree",
+                value = (AMAZON_RAINFOREST_TREE / totalCarbonFootprint).setScale(ROUND_SCALE, RoundingMode.HALF_UP)
+            )
+        )
 }
+
+class Conversion(
+    val name: String,
+    val value: BigDecimal,
+    val unit: String = "kilograms"
+)
 
 enum class UnitType {
     KG_CO2_EQ
