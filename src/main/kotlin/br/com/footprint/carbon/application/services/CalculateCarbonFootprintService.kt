@@ -33,6 +33,8 @@ class CalculateCarbonFootprintService(
     private var logger = LoggerFactory.getLogger(CalculateCarbonFootprintService::class.java)
 
     fun calculate(product: Product): CalculationRequest {
+        val startTime = LocalDateTime.now().toString()
+
         val ingredients = product.recipeId?.let { recipeId ->
             recipeGateway.getRecipeById(recipeId).ingredients
         } ?: run {
@@ -51,7 +53,7 @@ class CalculateCarbonFootprintService(
             name = product.foodName,
             href = "/calculation/requests/{request_id}",
             method = HttpMethod.GET,
-            startTime = LocalDateTime.now().toString()
+            startTime = startTime
         ).also {
             calculationRequestRepository.saveCalculationRequest(it)
         }
