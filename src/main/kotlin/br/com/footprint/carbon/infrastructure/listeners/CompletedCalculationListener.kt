@@ -1,9 +1,10 @@
 package br.com.footprint.carbon.infrastructure.listeners
 
+import br.com.footprint.carbon.domain.Calculation
+import br.com.footprint.carbon.domain.CalculationRepository
 import br.com.footprint.carbon.domain.CalculationRequestRepository
 import br.com.footprint.carbon.domain.CalculationRequestStatus
 import br.com.footprint.carbon.domain.ProcessesCalculation
-import br.com.footprint.carbon.domain.ProcessesCalculationRepository
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -28,8 +29,8 @@ import kotlin.coroutines.CoroutineContext
 class CompletedCalculationListener(
     sqsUri: String,
     private val sqsUrl: String,
-    private val processesCalculationRepository: ProcessesCalculationRepository,
-    private val calculationRequestRepository: CalculationRequestRepository
+    private val calculationRequestRepository: CalculationRequestRepository,
+    private val calculationRepository: CalculationRepository
 ) : CoroutineScope {
 
     companion object {
@@ -88,16 +89,22 @@ class CompletedCalculationListener(
     }
 
     private fun processMsg(message: Message) =
-        jacksonObjectMapper().readValue(message.body(), ProcessesCalculation::class.java).also {
-            logger.info("Saving calculation completed event")
-            processesCalculationRepository.save(it)
-
+        jacksonObjectMapper().readValue(message.body(), ProcessesCalculation::class.java).also { processCalculation ->
             logger.info("Update Calculation Request status")
             calculationRequestRepository.updateStatusByCalculationId(
-                calculationId = it.calculationId,
+                calculationId = processCalculation.calculationId,
                 status = CalculationRequestStatus.CALCULATED,
                 endTime = LocalDateTime.now().toString()
             )
+
+            val calculationRequest = calculationRequestRepository.findByCalculationId(processCalculation.calculationId)
+
+            Calculation(
+                id = processCalculation.calculationId,
+                name = calculationRequest.name,
+                processes = processCalculation.processCalculations,
+                calculatedPercentage = processCalculation.calculatedPercentage
+            ).also { calculationRepository.saveOrUpdate(it) }
 
             logger.info("Saved event !")
         }

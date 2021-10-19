@@ -4,11 +4,13 @@ import br.com.footprint.carbon.domain.Calculation
 import br.com.footprint.carbon.domain.CalculationRepository
 import br.com.footprint.carbon.domain.CalculationRequest
 import br.com.footprint.carbon.domain.CalculationRequestRepository
+import br.com.footprint.carbon.domain.CalculationRequestStatus
 import br.com.footprint.carbon.domain.HttpMethod
-import br.com.footprint.carbon.domain.ProcessesCalculationRepository
+import br.com.footprint.carbon.domain.Processes
 import br.com.footprint.carbon.infrastructure.gateways.LifeCycleAssessmentGateway
 import br.com.footprint.carbon.infrastructure.gateways.RecipeGateway
 import br.com.footprint.carbon.infrastructure.gateways.responses.Ingredient
+import io.ktor.features.NotFoundException
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.time.LocalDateTime
@@ -27,7 +29,6 @@ class CalculateCarbonFootprintService(
     private val lifeCycleAssessmentGateway: LifeCycleAssessmentGateway,
     private val recipeGateway: RecipeGateway,
     private val calculationRequestRepository: CalculationRequestRepository,
-    private val processesCalculationRepository: ProcessesCalculationRepository,
     private val calculationRepository: CalculationRepository
 ) {
     private var logger = LoggerFactory.getLogger(CalculateCarbonFootprintService::class.java)
@@ -55,26 +56,36 @@ class CalculateCarbonFootprintService(
             method = HttpMethod.GET,
             startTime = startTime
         ).also {
-            calculationRequestRepository.saveCalculationRequest(it)
+            calculationRequestRepository.saveOrUpdateCalculationRequest(it)
         }
     }
 
-    fun getCalculation(id: String): Calculation {
-        return calculationRepository.findById(id) ?: run {
-            val calculationRequest = calculationRequestRepository.findByCalculationId(id)
-            val calculationProcesses = processesCalculationRepository.findByCalculationId(id)
+    fun getCalculation(id: String): Calculation =
+        calculationRepository.findById(id) ?: throw NotFoundException("Calculation id $id not found")
 
-            Calculation(
-                id = id,
-                name = calculationRequest.name,
-                processes = calculationProcesses.processCalculations,
-                calculatedPercentage = calculationProcesses.calculatedPercentage
-            ).also {
-                calculationRepository.save(it)
-            }
+    fun editCalculation(id: String, newProcesses: Array<Processes>): CalculationRequest {
+        return getCalculation(id).let { calculation ->
+            val startTime = LocalDateTime.now().toString()
+
+            newProcesses
+                .map { process -> Ingredient(name = process.name, amount = process.amount, unit = "kilograms") }
+                .also { ingredients ->
+                    lifeCycleAssessmentGateway.calculateForFoods(
+                        foods = ingredients,
+                        calculationId = UUID.fromString(calculation.id)
+                    )
+                }
+
+            calculationRequestRepository
+                .findByCalculationId(calculation.id)
+                .copy(
+                    status = CalculationRequestStatus.CALCULATING,
+                    startTime = startTime,
+                    endTime = null
+                )
+                .also { calculationRequestRepository.saveOrUpdateCalculationRequest(it) }
         }
     }
-
     fun getAllCalculationRequest(): List<CalculationRequest> =
         calculationRequestRepository.findAll()
 

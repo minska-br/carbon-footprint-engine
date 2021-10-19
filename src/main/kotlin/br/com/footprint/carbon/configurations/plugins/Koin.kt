@@ -46,14 +46,16 @@ fun modules(keys: Map<String, String>): Module =
             )
         }
 
-        single { CalculateCarbonFootprintService(get(), get(), get(), get(), get()) }
+        single { CalculateCarbonFootprintService(get(), get(), get(), get()) }
         single { LifeCycleAssessmentGateway(keys.getValue("LCA_API_URL")) }
         single { RecipeGateway(keys.getValue("RECIPE_URL")) }
         single<CalculationRequestRepository> { CalculationRequestRepositoryImpl(get()) }
         single<ProcessesCalculationRepository> { ProcessesCalculationRepositoryImpl(get()) }
         single<CalculationRepository> { CalculationRepositoryImpl(get()) }
         single {
-            CompletedCalculationListener(keys.getValue("SQS_URI"), keys.getValue("SQS_URL"), get(), get())
+            CompletedCalculationListener(
+                keys.getValue("SQS_URI"), keys.getValue("SQS_URL"), get(), get()
+            )
         }
         single {
             FailedCalculationListener(keys.getValue("SQS_URI"), keys.getValue("DLQ_SQS_URL"), get())

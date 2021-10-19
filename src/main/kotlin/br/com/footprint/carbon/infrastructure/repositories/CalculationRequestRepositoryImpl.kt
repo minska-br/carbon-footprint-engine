@@ -21,8 +21,17 @@ class CalculationRequestRepositoryImpl(
         CalculationRequest::class.java
     )
 
-    override fun saveCalculationRequest(calculationRequest: CalculationRequest) {
-        collection.insertOne(calculationRequest)
+    override fun saveOrUpdateCalculationRequest(calculationRequest: CalculationRequest) {
+        collection.findOne(CalculationRequest::requestId eq calculationRequest.requestId)?.also {
+            collection.updateMany(
+                CalculationRequest::requestId eq calculationRequest.requestId,
+                listOf(
+                    setValue(CalculationRequest::status, calculationRequest.status),
+                    setValue(CalculationRequest::startTime, calculationRequest.startTime),
+                    setValue(CalculationRequest::endTime, calculationRequest.endTime)
+                ),
+            )
+        } ?: collection.insertOne(calculationRequest)
     }
 
     override fun findAll(): List<CalculationRequest> =
