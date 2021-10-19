@@ -36,7 +36,7 @@ data class Calculation(
         listOf(
             Conversion(
                 name = "Medium car",
-                value = (totalCarbonFootprint * MEDIUM_CAR).setScale(ROUND_SCALE, RoundingMode.HALF_UP)
+                value = (totalCarbonFootprint * MEDIUM_CAR).setScale(ROUND_SCALE, RoundingMode.HALF_UP),
             ),
             Conversion(
                 name = "Medium bus",
@@ -78,4 +78,9 @@ data class Miscalculation(
     val calculationId: String,
     @JsonProperty("error_message")
     val errorMessage: String,
+)
+
+data class ProcessesRequest(
+    val name: String,
+    val amount: BigDecimal
 )

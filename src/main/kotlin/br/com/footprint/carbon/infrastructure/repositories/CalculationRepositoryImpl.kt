@@ -6,6 +6,7 @@ import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
 import org.litote.kmongo.eq
 import org.litote.kmongo.findOne
+import org.litote.kmongo.setValue
 
 private const val COLLECTION_NAME = "Calculation"
 
@@ -17,8 +18,18 @@ class CalculationRepositoryImpl(
         Calculation::class.java
     )
 
-    override fun save(calculation: Calculation) {
-        collection.insertOne(calculation)
+    override fun saveOrUpdate(calculation: Calculation) {
+        collection.findOne(Calculation::id eq calculation.id)?.also {
+            collection.updateMany(
+                Calculation::id eq calculation.id,
+                listOf(
+                    setValue(Calculation::processes, calculation.processes),
+                    setValue(Calculation::calculatedPercentage, calculation.calculatedPercentage),
+                    setValue(Calculation::totalCarbonFootprint, calculation.totalCarbonFootprint),
+                    setValue(Calculation::conversions, calculation.conversions)
+                )
+            )
+        } ?: collection.insertOne(calculation)
     }
 
     override fun findById(id: String): Calculation? =

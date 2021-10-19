@@ -17,6 +17,11 @@ import java.util.UUID
 
 data class RequestId(val value: UUID)
 
+data class CalculationBody(
+    val id: UUID?,
+    val products: List<Ingredient>
+)
+
 class LifeCycleAssessmentGateway(val lcaApiUrl: String) {
     companion object {
         val client = HttpClient(CIO) {
@@ -33,10 +38,10 @@ class LifeCycleAssessmentGateway(val lcaApiUrl: String) {
         }
     }
 
-    fun calculateForFoods(foods: List<Ingredient>) = runBlocking {
+    fun calculateForFoods(foods: List<Ingredient>, calculationId: UUID? = null) = runBlocking {
         client.post<RequestId>("$lcaApiUrl/calculate") {
             contentType(ContentType.Application.Json)
-            body = foods
+            body = CalculationBody(id = calculationId, products = foods)
         }
     }
 }

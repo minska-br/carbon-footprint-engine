@@ -7,6 +7,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.get
+import io.ktor.routing.patch
 import io.ktor.routing.post
 import io.ktor.routing.route
 import io.ktor.routing.routing
@@ -29,6 +30,16 @@ fun Application.configureRouting() {
                         id = UUID.fromString(id).toString()
                     )
                     call.respond(HttpStatusCode.OK, calculation)
+                }
+            }
+
+            patch("/{id}") {
+                call.parameters["id"].takeUnless { it.isNullOrEmpty() }?.let { id ->
+                    val calculationRequest = calculateCarbonFootprintService.editCalculation(
+                        id = UUID.fromString(id).toString(),
+                        newProcesses = call.receive()
+                    )
+                    call.respond(HttpStatusCode.Accepted, calculationRequest)
                 }
             }
 
