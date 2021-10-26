@@ -62,7 +62,6 @@ class FailedCalculationListener(
                 .build()
 
             val messages = sqs.receiveMessage(receiveRequest).await().messages()
-            logger.info("${Thread.currentThread().name} Retrieved ${messages.size} messages")
 
             messages.forEach {
                 channel.send(it)
@@ -100,8 +99,6 @@ class FailedCalculationListener(
             req.queueUrl(sqsUrl)
             req.receiptHandle(message.receiptHandle())
         }.await()
-
-        logger.info("${Thread.currentThread().name} Message deleted: ${message.body()}")
     }
 
     private suspend fun changeVisibility(message: Message) {
@@ -110,8 +107,6 @@ class FailedCalculationListener(
             req.receiptHandle(message.receiptHandle())
             req.visibilityTimeout(VISIBILITY_TIMEOUT)
         }.await()
-
-        logger.info("${Thread.currentThread().name} Changed visibility of message: ${message.body()}")
     }
 
     private suspend fun CoroutineScope.repeatUntilCancelled(block: suspend () -> Unit) {
@@ -125,7 +120,5 @@ class FailedCalculationListener(
                 logger.error("${Thread.currentThread().name} failed with {$ex}. Retrying...", ex)
             }
         }
-
-        logger.info("coroutine on ${Thread.currentThread().name} exiting")
     }
 }
