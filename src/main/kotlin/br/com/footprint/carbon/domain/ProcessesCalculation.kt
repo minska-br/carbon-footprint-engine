@@ -37,18 +37,22 @@ data class Calculation(
             Conversion(
                 name = "Medium car",
                 value = (totalCarbonFootprint * MEDIUM_CAR).setScale(ROUND_SCALE, RoundingMode.HALF_UP),
+                unit = "Quilômetros"
             ),
             Conversion(
                 name = "Medium bus",
-                value = (totalCarbonFootprint * MEDIUM_BUS).setScale(ROUND_SCALE, RoundingMode.HALF_UP)
+                value = (totalCarbonFootprint * MEDIUM_BUS).setScale(ROUND_SCALE, RoundingMode.HALF_UP),
+                unit = "Quilômetros"
             ),
             Conversion(
                 name = "Atlantic Forest tree",
-                value = (ATLANTIC_FOREST_TREE / totalCarbonFootprint).setScale(ROUND_SCALE, RoundingMode.HALF_UP)
+                value = (totalCarbonFootprint / ATLANTIC_FOREST_TREE).setScale(ROUND_SCALE, RoundingMode.HALF_UP),
+                unit = "Árvores"
             ),
             Conversion(
                 name = "Amazon Rainforest tree",
-                value = (AMAZON_RAINFOREST_TREE / totalCarbonFootprint).setScale(ROUND_SCALE, RoundingMode.HALF_UP)
+                value = (totalCarbonFootprint / AMAZON_RAINFOREST_TREE).setScale(ROUND_SCALE, RoundingMode.HALF_UP),
+                unit = "Árvores"
             )
         )
 }
@@ -56,7 +60,7 @@ data class Calculation(
 class Conversion(
     val name: String,
     val value: BigDecimal,
-    val unit: String = "kilograms"
+    val unit: String
 )
 
 enum class UnitType {
@@ -78,9 +82,4 @@ data class Miscalculation(
     val calculationId: String,
     @JsonProperty("error_message")
     val errorMessage: String,
-)
-
-data class ProcessesRequest(
-    val name: String,
-    val amount: BigDecimal
 )
