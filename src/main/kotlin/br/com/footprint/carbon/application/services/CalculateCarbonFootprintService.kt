@@ -39,9 +39,9 @@ class CalculateCarbonFootprintService(
         val ingredients = product.recipeId?.let { recipeId ->
             recipeGateway.getRecipeById(recipeId).ingredients
         } ?: run {
-            listOf(
-                Ingredient(name = product.foodName, amount = product.amount, unit = "kilograms")
-            )
+            val foodName = recipeGateway.getTranslation(product.foodName).result
+
+            listOf(Ingredient(name = foodName, amount = product.amount, unit = "kilograms"))
         }
 
         val calculationRequestId = lifeCycleAssessmentGateway.calculateForFoods(ingredients).also {
