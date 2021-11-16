@@ -1,6 +1,7 @@
 package br.com.footprint.carbon.infrastructure.gateways
 
 import br.com.footprint.carbon.infrastructure.gateways.responses.RecipeResponse
+import br.com.footprint.carbon.infrastructure.gateways.responses.TranslationResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.features.HttpTimeout
@@ -11,6 +12,7 @@ import io.ktor.client.features.logging.LogLevel
 import io.ktor.client.features.logging.Logger
 import io.ktor.client.features.logging.Logging
 import io.ktor.client.features.timeout
+import io.ktor.client.request.get
 import io.ktor.client.request.post
 import kotlinx.coroutines.runBlocking
 
@@ -35,6 +37,14 @@ class RecipeGateway(private val recipeUrl: String) {
 
     fun getRecipeById(id: String) = runBlocking {
         client.post<RecipeResponse>("$recipeUrl/recipes/AllRecipes/$id") {
+            timeout {
+                requestTimeoutMillis = REQUEST_TIMEOUT_MILLIS
+            }
+        }
+    }
+
+    fun getTranslation(value: String) = runBlocking {
+        client.get<TranslationResponse>("$recipeUrl/translations?value=$value") {
             timeout {
                 requestTimeoutMillis = REQUEST_TIMEOUT_MILLIS
             }

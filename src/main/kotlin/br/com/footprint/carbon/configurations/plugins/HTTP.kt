@@ -10,6 +10,7 @@ fun Application.configureHTTP() {
     install(CORS) {
         method(HttpMethod.Post)
         method(HttpMethod.Get)
+        method(HttpMethod.Patch)
         method(HttpMethod.Options)
         header(HttpHeaders.AccessControlAllowOrigin)
         header(HttpHeaders.ContentType)
